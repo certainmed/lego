@@ -4,381 +4,400 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LEGO Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
             overflow: hidden;
-            background: #1a1a2e;
+            background: #0f172a;
+            color: #e2e8f0;
         }
-        
+
+        /* Floating Header */
         #header {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+            top: 20px;
+            left: 20px;
+            padding: 12px 24px;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
+            gap: 24px;
             z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
         }
-        
+
         #header h1 {
             color: #fff;
-            font-size: 22px;
-            font-weight: bold;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+            font-size: 18px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             gap: 10px;
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        
+
         .header-info {
-            color: rgba(255,255,255,0.9);
-            font-size: 13px;
             display: flex;
-            gap: 20px;
+            gap: 16px;
+            font-size: 13px;
+            color: #94a3b8;
         }
-        
+
+        .header-info strong {
+            color: #f8fafc;
+            font-weight: 600;
+        }
+
+        /* Fullscreen Canvas */
         #canvas-container {
-            position: fixed;
-            top: 50px;
-            left: 0;
-            right: 280px;
-            bottom: 0;
-            background: #0d1b2a;
-        }
-        
-        #control-panel {
-            position: fixed;
-            top: 50px;
-            right: 0;
-            width: 280px;
-            bottom: 0;
-            background: #16213e;
-            overflow-y: auto;
-            padding: 12px;
-            border-left: 3px solid #e63946;
-        }
-        
-        .panel-section {
-            background: #1a1a2e;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 12px;
-        }
-        
-        .panel-section h3 {
-            color: #e63946;
-            font-size: 12px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-        }
-        
-        .tool-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-        }
-        
-        .tool-btn {
-            padding: 8px 4px;
-            border: 2px solid transparent;
-            border-radius: 6px;
-            background: #0f3460;
-            color: #fff;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s;
-        }
-        
-        .tool-btn:hover {
-            background: #1a4a7a;
-            border-color: #e63946;
-        }
-        
-        .tool-btn.active {
-            background: #e63946;
-            border-color: #fff;
-            box-shadow: 0 0 10px rgba(230, 57, 70, 0.5);
-        }
-        
-        .brick-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 5px;
-        }
-        
-        .brick-btn {
-            padding: 6px 4px;
-            border: 2px solid transparent;
-            border-radius: 5px;
-            background: #0f3460;
-            color: #fff;
-            cursor: pointer;
-            font-size: 10px;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        
-        .brick-btn:hover {
-            background: #1a4a7a;
-            border-color: #e63946;
-        }
-        
-        .brick-btn.selected {
-            background: #e63946;
-            border-color: #fff;
-        }
-        
-        .color-palette {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 5px;
-        }
-        
-        .color-swatch {
-            width: 100%;
-            aspect-ratio: 1;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .color-swatch:hover {
-            transform: scale(1.15);
-            border-color: #fff;
-            z-index: 10;
-        }
-        
-        .color-swatch.selected {
-            border-color: #fff;
-            box-shadow: 0 0 8px rgba(255,255,255,0.6);
-            transform: scale(1.1);
-        }
-        
-        .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 6px;
-        }
-        
-        .action-btn {
-            padding: 8px 4px;
-            border: none;
-            border-radius: 5px;
-            background: #0f3460;
-            color: #fff;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s;
-        }
-        
-        .action-btn:hover {
-            background: #1a4a7a;
-        }
-        
-        .action-btn.danger {
-            background: #7a1a1a;
-        }
-        
-        .action-btn.danger:hover {
-            background: #c1121f;
-        }
-        
-        #info-display {
-            color: #aaa;
-            font-size: 11px;
-            line-height: 1.8;
-        }
-        
-        #info-display span {
-            color: #e63946;
-            font-weight: bold;
-        }
-        
-        #toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(15, 52, 96, 0.95);
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            border: 2px solid #e63946;
-            backdrop-filter: blur(5px);
-        }
-        
-        #toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-        
-        #help-modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.85);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            z-index: 0;
         }
-        
-        #help-modal.show {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: #16213e;
-            padding: 25px;
-            border-radius: 12px;
-            max-width: 450px;
-            width: 90%;
-            max-height: 80vh;
+
+        /* Floating Control Panel */
+        #control-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            bottom: 20px;
+            width: 320px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
             overflow-y: auto;
-            border: 3px solid #e63946;
+            padding: 20px;
+            z-index: 100;
+            box-shadow: -4px 0 30px rgba(0, 0, 0, 0.3);
+            scrollbar-width: thin;
+            scrollbar-color: #334155 transparent;
         }
-        
-        .modal-content h2 {
-            color: #e63946;
-            margin-bottom: 15px;
-            font-size: 20px;
+
+        #control-panel::-webkit-scrollbar {
+            width: 6px;
         }
-        
-        .shortcut {
+
+        #control-panel::-webkit-scrollbar-thumb {
+            background-color: #334155;
+            border-radius: 3px;
+        }
+
+        .panel-section {
+            margin-bottom: 24px;
+        }
+
+        .panel-section h3 {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #0f3460;
-            color: #ccc;
-            font-size: 13px;
+            gap: 8px;
         }
-        
-        .key {
-            background: #0f3460;
-            padding: 4px 10px;
-            border-radius: 4px;
-            color: #e63946;
-            font-family: monospace;
-            font-size: 12px;
+
+        .panel-section h3::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
         }
-        
-        .close-modal {
-            margin-top: 20px;
-            padding: 10px 30px;
-            background: #e63946;
+
+        /* Tool Buttons */
+        .tool-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .tool-btn {
+            padding: 10px 4px;
             border: none;
-            border-radius: 6px;
-            color: #fff;
+            border-radius: 8px;
+            background: transparent;
+            color: #94a3b8;
             cursor: pointer;
-            font-size: 14px;
-            width: 100%;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
         }
-        
-        .close-modal:hover {
-            background: #c1121f;
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .tool-btn.active {
+            background: #3b82f6;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 10px;
+            background: rgba(30, 41, 59, 0.5);
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .action-btn:hover {
+            background: #334155;
+            color: #fff;
+            border-color: rgba(255,255,255,0.1);
+            transform: translateY(-1px);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .action-btn.danger {
+            background: rgba(220, 38, 38, 0.1);
+            color: #f87171;
+            border-color: rgba(220, 38, 38, 0.2);
+        }
+
+        .action-btn.danger:hover {
+            background: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
+        }
+
+        /* Brick Grid */
+        .brick-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .brick-btn {
+            padding: 12px 4px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            background: #1e293b;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: center;
+            font-family: inherit;
+        }
+
+        .brick-btn:hover {
+            background: #334155;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .brick-btn.selected {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Color Palette */
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+
+        .color-swatch {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 2px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.15);
+            border-color: rgba(255,255,255,0.5);
+            z-index: 10;
+        }
+
+        .color-swatch.selected {
+            border-color: #fff;
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.8), 0 0 0 4px #fff;
+            transform: scale(1.1);
+            z-index: 2;
+        }
+
+        /* Info & Rotation */
+        #info-display {
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        #info-display span {
+            color: #38bdf8;
+            float: right;
         }
 
         .rotation-display {
             display: flex;
             justify-content: space-between;
-            margin-top: 8px;
-            padding: 6px;
-            background: #0f3460;
-            border-radius: 4px;
-            font-size: 10px;
-            color: #aaa;
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            font-size: 11px;
+            color: #94a3b8;
+            font-family: monospace;
         }
 
         .rotation-display span {
-            color: #e63946;
+            color: #f43f5e;
+            font-weight: bold;
         }
 
-        #save-modal {
+        /* Toast */
+        #toast {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.85);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 23, 42, 0.9);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
 
-        #save-modal.show {
-            display: flex;
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
         }
 
-        .save-list {
-            max-height: 300px;
-            overflow-y: auto;
+        /* Modals */
+        .modal-content {
+            background: #1e293b;
+            padding: 32px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+        }
+
+        .modal-content h2 {
+            color: #fff;
+            font-weight: 700;
+            font-size: 24px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .shortcut {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 12px 0;
+            color: #cbd5e1;
+        }
+
+        .key {
+            background: #334155;
+            color: #38bdf8;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: #3b82f6;
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 24px;
+            transition: all 0.2s;
+        }
+
+        .close-modal:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
         }
 
         .save-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background: #0f3460;
-            margin-bottom: 6px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s;
+            background: #334155;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid transparent;
         }
 
         .save-item:hover {
-            background: #1a4a7a;
-        }
-
-        .save-item-name {
-            color: #fff;
-            font-size: 13px;
-        }
-
-        .save-item-date {
-            color: #888;
-            font-size: 11px;
+            background: #475569;
+            border-color: #64748b;
         }
 
         .save-item-delete {
-            background: #c1121f;
-            border: none;
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
+            background: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
         }
 
-        .no-saves {
-            color: #888;
-            text-align: center;
-            padding: 20px;
+        .save-item-delete:hover {
+            background: rgba(220, 38, 38, 0.4);
         }
-    </style>
+</style>
 </head>
 <body>
     <div id="header">
@@ -388,9 +407,9 @@
             <span>Tool: <strong id="current-tool-header">Place</strong></span>
         </div>
     </div>
-    
+
     <div id="canvas-container"></div>
-    
+
     <div id="control-panel">
         <div class="panel-section">
             <h3>🔧 Tools</h3>
@@ -401,17 +420,17 @@
                 <button class="tool-btn" data-tool="delete" title="Delete bricks">Delete</button>
             </div>
         </div>
-        
+
         <div class="panel-section">
             <h3>🧱 Brick Type</h3>
             <div class="brick-grid" id="brick-inventory"></div>
         </div>
-        
+
         <div class="panel-section">
             <h3>🎨 Colors</h3>
             <div class="color-palette" id="color-palette"></div>
         </div>
-        
+
         <div class="panel-section">
             <h3>🔄 Rotation</h3>
             <div class="tool-buttons">
@@ -426,7 +445,7 @@
                 <div>Z: <span id="rot-z">0°</span></div>
             </div>
         </div>
-        
+
         <div class="panel-section">
             <h3>⚡ Actions</h3>
             <div class="action-buttons">
@@ -440,7 +459,7 @@
                 <button class="action-btn" id="help-btn" title="Show help">❓ Help</button>
             </div>
         </div>
-        
+
         <div class="panel-section">
             <h3>📊 Info</h3>
             <div id="info-display">
@@ -450,9 +469,9 @@
             </div>
         </div>
     </div>
-    
+
     <div id="toast"></div>
-    
+
     <div id="help-modal">
         <div class="modal-content">
             <h2>🧱 LEGO Builder Controls</h2>
@@ -556,12 +575,12 @@
 
         function initThree() {
             const container = document.getElementById('canvas-container');
-            
+
             // Scene
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x1a2634);
             scene.fog = new THREE.Fog(0x1a2634, 30, 80);
-            
+
             // Camera
             camera = new THREE.PerspectiveCamera(
                 55,
@@ -569,9 +588,9 @@
                 0.1,
                 1000
             );
-            
+
             // Renderer
-            renderer = new THREE.WebGLRenderer({ 
+            renderer = new THREE.WebGLRenderer({
                 antialias: true,
                 preserveDrawingBuffer: true
             });
@@ -580,27 +599,27 @@
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
-            
+
             // Lighting
             setupLighting();
-            
+
             // Ground and Grid
             createGroundAndGrid();
-            
+
             // Ghost brick preview
             createGhostBrick();
-            
+
             // Camera controls
             setupCameraControls(container);
-            
+
             // Initial camera position
             updateCameraPosition();
-            
+
             // Event listeners
             window.addEventListener('resize', onWindowResize);
             container.addEventListener('click', handleCanvasClick);
             container.addEventListener('mousemove', handleMouseMove);
-            
+
             // Start render loop
             animate();
         }
@@ -609,7 +628,7 @@
             // Ambient light
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
-            
+
             // Main directional light
             const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
             mainLight.position.set(15, 25, 15);
@@ -624,12 +643,12 @@
             mainLight.shadow.camera.bottom = -20;
             mainLight.shadow.bias = -0.001;
             scene.add(mainLight);
-            
+
             // Fill light
             const fillLight = new THREE.DirectionalLight(0x8888ff, 0.3);
             fillLight.position.set(-10, 10, -10);
             scene.add(fillLight);
-            
+
             // Hemisphere light for ambient
             const hemiLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.3);
             scene.add(hemiLight);
@@ -638,7 +657,7 @@
         function createGroundAndGrid() {
             // Ground plane
             const groundGeo = new THREE.PlaneGeometry(CONFIG.gridSize * 2, CONFIG.gridSize * 2);
-            const groundMat = new THREE.MeshStandardMaterial({ 
+            const groundMat = new THREE.MeshStandardMaterial({
                 color: 0x3d5a4c,
                 roughness: 0.9,
                 metalness: 0.1
@@ -649,12 +668,12 @@
             groundPlane.receiveShadow = true;
             groundPlane.name = 'ground';
             scene.add(groundPlane);
-            
+
             // Grid helper
             const gridHelper = new THREE.GridHelper(CONFIG.gridSize, CONFIG.gridSize * 2, 0x557755, 0x446644);
             gridHelper.position.y = 0.01;
             scene.add(gridHelper);
-            
+
             // Axis indicator
             const axesHelper = new THREE.AxesHelper(3);
             axesHelper.position.set(-CONFIG.gridSize/2 + 1, 0.1, -CONFIG.gridSize/2 + 1);
@@ -663,7 +682,7 @@
 
         function createBrickGeometry(brickType, withRotation = null) {
             const effectiveType = { ...brickType };
-            
+
             // Handle rotation swapping dimensions
             if (withRotation) {
                 const yRot = ((withRotation.y % 360) + 360) % 360;
@@ -672,24 +691,24 @@
                     effectiveType.depth = brickType.width;
                 }
             }
-            
+
             const width = effectiveType.width * CONFIG.studSize;
             const depth = effectiveType.depth * CONFIG.studSize;
             const height = effectiveType.type === 'plate' ? CONFIG.plateHeight : CONFIG.brickHeight;
-            
+
             const group = new THREE.Group();
-            
+
             // Main body with slight bevel effect
             const bodyGeo = new THREE.BoxGeometry(width - 0.02, height - 0.02, depth - 0.02);
             const bodyMesh = new THREE.Mesh(bodyGeo);
             bodyMesh.position.y = height / 2;
             group.add(bodyMesh);
-            
+
             // Add studs on top
             const studRadius = CONFIG.studSize * 0.3;
             const studHeight = 0.12;
             const studGeo = new THREE.CylinderGeometry(studRadius, studRadius * 1.05, studHeight, 12);
-            
+
             for (let x = 0; x < brickType.width; x++) {
                 for (let z = 0; z < brickType.depth; z++) {
                     const stud = new THREE.Mesh(studGeo);
@@ -699,7 +718,7 @@
                     group.add(stud);
                 }
             }
-            
+
             // Merge into single geometry
             const mergedGeo = mergeGroupGeometry(group);
             return mergedGeo;
@@ -710,31 +729,31 @@
             const normals = [];
             const indices = [];
             let indexOffset = 0;
-            
+
             group.updateMatrixWorld(true);
-            
+
             group.children.forEach(child => {
                 const geo = child.geometry.clone();
                 geo.applyMatrix4(child.matrixWorld);
-                
+
                 const pos = geo.getAttribute('position');
                 const norm = geo.getAttribute('normal');
                 const idx = geo.getIndex();
-                
+
                 for (let i = 0; i < pos.count; i++) {
                     positions.push(pos.getX(i), pos.getY(i), pos.getZ(i));
                     normals.push(norm.getX(i), norm.getY(i), norm.getZ(i));
                 }
-                
+
                 if (idx) {
                     for (let i = 0; i < idx.count; i++) {
                         indices.push(idx.getX(i) + indexOffset);
                     }
                 }
-                
+
                 indexOffset += pos.count;
             });
-            
+
             const mergedGeo = new THREE.BufferGeometry();
             mergedGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
             mergedGeo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
@@ -742,7 +761,7 @@
                 mergedGeo.setIndex(indices);
             }
             mergedGeo.computeBoundingBox();
-            
+
             return mergedGeo;
         }
 
@@ -756,7 +775,7 @@
                 if (ghostBrick.geometry) ghostBrick.geometry.dispose();
                 if (ghostBrick.material) ghostBrick.material.dispose();
             }
-            
+
             const geometry = createBrickGeometry(gameState.currentBrickType);
             const material = new THREE.MeshStandardMaterial({
                 color: gameState.currentColor,
@@ -764,12 +783,12 @@
                 opacity: 0.6,
                 roughness: 0.5
             });
-            
+
             ghostBrick = new THREE.Mesh(geometry, material);
             ghostBrick.visible = false;
             ghostBrick.name = 'ghost';
             scene.add(ghostBrick);
-            
+
             updateRotationDisplay();
         }
 
@@ -788,44 +807,44 @@
                     e.preventDefault();
                 }
             });
-            
+
             container.addEventListener('mouseup', () => {
                 cameraState.isRotating = false;
                 cameraState.isPanning = false;
             });
-            
+
             container.addEventListener('mouseleave', () => {
                 cameraState.isRotating = false;
                 cameraState.isPanning = false;
             });
-            
+
             container.addEventListener('mousemove', (e) => {
                 const deltaX = e.clientX - cameraState.lastMouseX;
                 const deltaY = e.clientY - cameraState.lastMouseY;
-                
+
                 if (cameraState.isRotating) {
                     cameraState.theta -= deltaX * 0.008;
                     cameraState.phi = Math.max(0.2, Math.min(Math.PI / 2 - 0.1, cameraState.phi - deltaY * 0.008));
                     updateCameraPosition();
                 }
-                
+
                 if (cameraState.isPanning) {
                     const panSpeed = 0.02;
                     cameraState.target.x -= deltaX * panSpeed;
                     cameraState.target.z -= deltaY * panSpeed;
                     updateCameraPosition();
                 }
-                
+
                 cameraState.lastMouseX = e.clientX;
                 cameraState.lastMouseY = e.clientY;
             });
-            
+
             container.addEventListener('wheel', (e) => {
                 e.preventDefault();
                 cameraState.radius = Math.max(5, Math.min(50, cameraState.radius + e.deltaY * 0.03));
                 updateCameraPosition();
             }, { passive: false });
-            
+
             container.addEventListener('contextmenu', (e) => e.preventDefault());
         }
 
@@ -852,26 +871,26 @@
         function getIntersection(event) {
             const container = document.getElementById('canvas-container');
             const rect = container.getBoundingClientRect();
-            
+
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-            
+
             raycaster.setFromCamera(mouse, camera);
-            
+
             // Check bricks first
             const brickMeshArray = Array.from(brickMeshes.values());
             const brickIntersects = raycaster.intersectObjects(brickMeshArray);
-            
+
             if (brickIntersects.length > 0) {
                 return { type: 'brick', intersection: brickIntersects[0] };
             }
-            
+
             // Check ground
             const groundIntersects = raycaster.intersectObject(groundPlane);
             if (groundIntersects.length > 0) {
                 return { type: 'ground', intersection: groundIntersects[0] };
             }
-            
+
             return null;
         }
 
@@ -885,34 +904,37 @@
 
         function updateGhostPosition(event) {
             if (!ghostBrick) return;
-            
+
             const result = getIntersection(event);
-            
+
             if (result) {
                 ghostBrick.visible = true;
-                
+
                 const point = result.intersection.point;
                 const snapped = snapPosition(point, gameState.currentBrickType, gameState.currentRotation);
-                
+
                 let y = 0;
                 if (result.type === 'brick') {
                     const hitBrick = getBrickByMesh(result.intersection.object);
                     if (hitBrick) {
-                        const hitHeight = getBrickHeight(hitBrick.type);
-                        y = hitBrick.position.y + hitHeight;
+                        const bBounds = getWorldBounds(hitBrick.position, hitBrick.type, hitBrick.rotation);
+                        y = bBounds.max.y;
                     }
                 }
-                
-                ghostBrick.position.set(snapped.x, y, snapped.z);
+
+                const local = getLocalBounds(gameState.currentBrickType, gameState.currentRotation);
+                const placementY = y - local.min.y;
+
+                ghostBrick.position.set(snapped.x, placementY, snapped.z);
                 ghostBrick.rotation.set(
                     THREE.MathUtils.degToRad(gameState.currentRotation.x),
                     THREE.MathUtils.degToRad(gameState.currentRotation.y),
                     THREE.MathUtils.degToRad(gameState.currentRotation.z)
                 );
-                
+
                 // Check collision and update color
-                const hasCollision = checkCollision(snapped.x, y, snapped.z, gameState.currentBrickType, gameState.currentRotation);
-                
+                const hasCollision = checkCollision(snapped.x, placementY, snapped.z, gameState.currentBrickType, gameState.currentRotation);
+
                 if (hasCollision) {
                     ghostBrick.material.color.setHex(0xff3333);
                     ghostBrick.material.opacity = 0.4;
@@ -927,21 +949,21 @@
 
         function snapPosition(point, brickType, rotation) {
             const unit = CONFIG.studSize;
-            
+
             // Determine effective dimensions after rotation
             let effWidth = brickType.width;
             let effDepth = brickType.depth;
-            
+
             const yRot = ((rotation.y % 360) + 360) % 360;
             if (yRot === 90 || yRot === 270) {
                 effWidth = brickType.depth;
                 effDepth = brickType.width;
             }
-            
+
             // Calculate offset for centering
             const offsetX = (effWidth % 2 === 0) ? 0 : unit / 2;
             const offsetZ = (effDepth % 2 === 0) ? 0 : unit / 2;
-            
+
             return {
                 x: Math.round((point.x - offsetX) / unit) * unit + offsetX,
                 z: Math.round((point.z - offsetZ) / unit) * unit + offsetZ
@@ -955,7 +977,7 @@
         function getEffectiveDimensions(brickType, rotation) {
             let width = brickType.width;
             let depth = brickType.depth;
-            
+
             const yRot = ((rotation.y % 360) + 360) % 360;
             if (yRot === 90 || yRot === 270) {
                 return { width: depth, depth: width };
@@ -963,41 +985,89 @@
             return { width, depth };
         }
 
-        function checkCollision(x, y, z, brickType, rotation, excludeId = null) {
-            const dims = getEffectiveDimensions(brickType, rotation);
-            const width = dims.width * CONFIG.studSize;
-            const depth = dims.depth * CONFIG.studSize;
-            const height = getBrickHeight(brickType);
-            
-            const tolerance = 0.01;
-            
+        function getLocalBounds(brickType, rotation) {
+            const w = brickType.width * CONFIG.studSize;
+            const h = brickType.type === 'plate' ? CONFIG.plateHeight : CONFIG.brickHeight;
+            const d = brickType.depth * CONFIG.studSize;
+
+            // Define corners relative to pivot (which is bottom-center of the unrotated brick)
+            const min = new THREE.Vector3(-w/2, 0, -d/2);
+            const max = new THREE.Vector3(w/2, h, d/2);
+
+            const corners = [
+                new THREE.Vector3(min.x, min.y, min.z),
+                new THREE.Vector3(max.x, min.y, min.z),
+                new THREE.Vector3(min.x, max.y, min.z),
+                new THREE.Vector3(max.x, max.y, min.z),
+                new THREE.Vector3(min.x, min.y, max.z),
+                new THREE.Vector3(max.x, min.y, max.z),
+                new THREE.Vector3(min.x, max.y, max.z),
+                new THREE.Vector3(max.x, max.y, max.z)
+            ];
+
+            const euler = new THREE.Euler(
+                THREE.MathUtils.degToRad(rotation.x),
+                THREE.MathUtils.degToRad(rotation.y),
+                THREE.MathUtils.degToRad(rotation.z),
+                'XYZ'
+            );
+
+            const rotatedMin = new THREE.Vector3(Infinity, Infinity, Infinity);
+            const rotatedMax = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+
+            corners.forEach(p => {
+                p.applyEuler(euler);
+                rotatedMin.min(p);
+                rotatedMax.max(p);
+            });
+
+            return { min: rotatedMin, max: rotatedMax };
+        }
+
+        function getWorldBounds(position, brickType, rotation) {
+            const local = getLocalBounds(brickType, rotation);
+            const pos = new THREE.Vector3(position.x, position.y, position.z);
+            return {
+                min: local.min.clone().add(pos),
+                max: local.max.clone().add(pos)
+            };
+        }
+
+        function checkCollision(x, y, z, brickType, rotation, excludeIds = []) {
+            const excludes = Array.isArray(excludeIds) ? excludeIds : (excludeIds ? [excludeIds] : []);
+
+            const bounds = getWorldBounds({x, y, z}, brickType, rotation);
+            const tolerance = 0.005;
+
+            // Shrink bounds slightly for collision check
+            const aMin = bounds.min.clone().addScalar(tolerance);
+            const aMax = bounds.max.clone().subScalar(tolerance);
+
             for (const brick of gameState.bricks) {
-                if (brick.id === excludeId) continue;
-                
-                const bDims = getEffectiveDimensions(brick.type, brick.rotation);
-                const bWidth = bDims.width * CONFIG.studSize;
-                const bDepth = bDims.depth * CONFIG.studSize;
-                const bHeight = getBrickHeight(brick.type);
-                
-                // AABB collision detection
-                const overlapX = Math.abs(x - brick.position.x) < (width + bWidth) / 2 - tolerance;
-                const overlapZ = Math.abs(z - brick.position.z) < (depth + bDepth) / 2 - tolerance;
-                const overlapY = y < brick.position.y + bHeight - tolerance && y + height > brick.position.y + tolerance;
-                
-                if (overlapX && overlapZ && overlapY) {
-                    return true;
-                }
+                if (excludes.includes(brick.id)) continue;
+
+                const bBounds = getWorldBounds(brick.position, brick.type, brick.rotation);
+                const bMin = bBounds.min.clone().addScalar(tolerance);
+                const bMax = bBounds.max.clone().subScalar(tolerance);
+
+                const intersect = (
+                    aMin.x < bMax.x && aMax.x > bMin.x &&
+                    aMin.y < bMax.y && aMax.y > bMin.y &&
+                    aMin.z < bMax.z && aMax.z > bMin.z
+                );
+
+                if (intersect) return true;
             }
-            
+
             return false;
         }
 
         // ==================== BRICK OPERATIONS ====================
         function handleCanvasClick(event) {
             if (cameraState.isRotating || cameraState.isPanning) return;
-            
+
             const result = getIntersection(event);
-            
+
             switch (gameState.currentTool) {
                 case 'place':
                     if (result) placeBrick(result);
@@ -1021,39 +1091,43 @@
         function placeBrick(result) {
             const brickType = gameState.currentBrickType;
             const rotation = { ...gameState.currentRotation };
-            
+
             const point = result.intersection.point;
             const snapped = snapPosition(point, brickType, rotation);
-            
+
             let y = 0;
             if (result.type === 'brick') {
                 const hitBrick = getBrickByMesh(result.intersection.object);
                 if (hitBrick) {
-                    y = hitBrick.position.y + getBrickHeight(hitBrick.type);
+                    const bBounds = getWorldBounds(hitBrick.position, hitBrick.type, hitBrick.rotation);
+                    y = bBounds.max.y;
                 }
             }
-            
+
+            const local = getLocalBounds(brickType, rotation);
+            const placementY = y - local.min.y;
+
             // Check for collision
-            if (checkCollision(snapped.x, y, snapped.z, brickType, rotation)) {
+            if (checkCollision(snapped.x, placementY, snapped.z, brickType, rotation)) {
                 showToast('Cannot place here - collision!');
                 return;
             }
-            
+
             // Boundary check
             const halfGrid = CONFIG.gridSize / 2;
             if (Math.abs(snapped.x) > halfGrid || Math.abs(snapped.z) > halfGrid) {
                 showToast('Outside building area!');
                 return;
             }
-            
+
             const brick = {
                 id: generateId(),
                 type: { ...brickType },
-                position: { x: snapped.x, y: y, z: snapped.z },
+                position: { x: snapped.x, y: placementY, z: snapped.z },
                 rotation: rotation,
                 color: gameState.currentColor
             };
-            
+
             gameState.bricks.push(brick);
             createBrickMesh(brick);
             saveToHistory();
@@ -1067,7 +1141,7 @@
                 roughness: 0.35,
                 metalness: 0.05
             });
-            
+
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(brick.position.x, brick.position.y, brick.position.z);
             mesh.rotation.set(
@@ -1078,7 +1152,7 @@
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             mesh.userData.brickId = brick.id;
-            
+
             scene.add(mesh);
             brickMeshes.set(brick.id, mesh);
         }
@@ -1090,22 +1164,22 @@
 
         function handleSelection(event, result) {
             const isShift = event.shiftKey;
-            
+
             if (!result || result.type === 'ground') {
                 if (!isShift) deselectAll();
                 return;
             }
-            
+
             const brick = getBrickByMesh(result.intersection.object);
             if (!brick) return;
-            
+
             if (isShift) {
                 toggleSelection(brick.id);
             } else {
                 deselectAll();
                 selectBrick(brick.id);
             }
-            
+
             updateInfo();
         }
 
@@ -1170,7 +1244,7 @@
             const index = gameState.bricks.findIndex(b => b.id === id);
             if (index > -1) {
                 gameState.bricks.splice(index, 1);
-                
+
                 const mesh = brickMeshes.get(id);
                 if (mesh) {
                     scene.remove(mesh);
@@ -1178,7 +1252,7 @@
                     mesh.material.dispose();
                     brickMeshes.delete(id);
                 }
-                
+
                 deselectBrick(id);
                 applyGravity();
                 saveToHistory();
@@ -1191,7 +1265,7 @@
                 showToast('No bricks selected');
                 return;
             }
-            
+
             const count = gameState.selectedBrickIds.length;
             const idsToDelete = [...gameState.selectedBrickIds];
             idsToDelete.forEach(id => {
@@ -1207,7 +1281,7 @@
                     }
                 }
             });
-            
+
             gameState.selectedBrickIds = [];
             applyGravity();
             saveToHistory();
@@ -1218,9 +1292,9 @@
         function applyGravity() {
             // Sort by Y position (lowest first)
             gameState.bricks.sort((a, b) => a.position.y - b.position.y);
-            
+
             let changed = false;
-            
+
             for (const brick of gameState.bricks) {
                 const newY = findSupportLevel(brick);
                 if (Math.abs(newY - brick.position.y) > 0.01) {
@@ -1232,57 +1306,113 @@
                     changed = true;
                 }
             }
-            
+
             return changed;
         }
 
         function findSupportLevel(brick) {
-            const dims = getEffectiveDimensions(brick.type, brick.rotation);
-            const bWidth = dims.width * CONFIG.studSize;
-            const bDepth = dims.depth * CONFIG.studSize;
-            
-            let maxY = 0;
-            const tolerance = 0.01;
-            
+            const local = getLocalBounds(brick.type, brick.rotation);
+            const bounds = getWorldBounds(brick.position, brick.type, brick.rotation);
+            const tolerance = 0.005;
+
+            const aMinX = bounds.min.x + tolerance;
+            const aMaxX = bounds.max.x - tolerance;
+            const aMinZ = bounds.min.z + tolerance;
+            const aMaxZ = bounds.max.z - tolerance;
+
+            const bottomOffset = local.min.y;
+            const currentBottomY = brick.position.y + bottomOffset;
+
+            let maxSupportY = 0;
+
             for (const other of gameState.bricks) {
                 if (other.id === brick.id) continue;
-                if (other.position.y >= brick.position.y) continue;
-                
-                const oDims = getEffectiveDimensions(other.type, other.rotation);
-                const oWidth = oDims.width * CONFIG.studSize;
-                const oDepth = oDims.depth * CONFIG.studSize;
-                const oHeight = getBrickHeight(other.type);
-                
-                const overlapX = Math.abs(brick.position.x - other.position.x) < (bWidth + oWidth) / 2 - tolerance;
-                const overlapZ = Math.abs(brick.position.z - other.position.z) < (bDepth + oDepth) / 2 - tolerance;
-                
+
+                const bBounds = getWorldBounds(other.position, other.type, other.rotation);
+
+                const overlapX = aMinX < bBounds.max.x && aMaxX > bBounds.min.x;
+                const overlapZ = aMinZ < bBounds.max.z && aMaxZ > bBounds.min.z;
+
                 if (overlapX && overlapZ) {
-                    maxY = Math.max(maxY, other.position.y + oHeight);
+                     if (bBounds.max.y <= currentBottomY + 0.1) {
+                        maxSupportY = Math.max(maxSupportY, bBounds.max.y);
+                    }
                 }
             }
-            
-            return maxY;
+
+            return maxSupportY - bottomOffset;
         }
 
         // ==================== ROTATION ====================
         function rotateAxis(axis, delta = 90) {
             gameState.currentRotation[axis] = ((gameState.currentRotation[axis] + delta) % 360 + 360) % 360;
             updateGhostBrick();
-            
+
             // Also rotate selected bricks
             if (gameState.selectedBrickIds.length > 0) {
-                gameState.selectedBrickIds.forEach(id => {
+                const candidates = [];
+                let isBlocked = false;
+
+                // 1. Prepare candidates
+                for (const id of gameState.selectedBrickIds) {
                     const brick = gameState.bricks.find(b => b.id === id);
                     if (brick) {
-                        brick.rotation[axis] = ((brick.rotation[axis] + delta) % 360 + 360) % 360;
-                        const mesh = brickMeshes.get(id);
-                        if (mesh) {
-                            mesh.rotation.set(
-                                THREE.MathUtils.degToRad(brick.rotation.x),
-                                THREE.MathUtils.degToRad(brick.rotation.y),
-                                THREE.MathUtils.degToRad(brick.rotation.z)
-                            );
+                        const newRot = { ...brick.rotation };
+                        newRot[axis] = ((newRot[axis] + delta) % 360 + 360) % 360;
+                        candidates.push({ brick, newRot });
+                    }
+                }
+
+                // 2. Check collisions
+                for (const cand of candidates) {
+                    // Check against unselected bricks (using the updated checkCollision that supports array of excludes)
+                    if (checkCollision(cand.brick.position.x, cand.brick.position.y, cand.brick.position.z, cand.brick.type, cand.newRot, gameState.selectedBrickIds)) {
+                        isBlocked = true;
+                        break;
+                    }
+
+                    // Check against other candidates
+                    const aBounds = getWorldBounds(cand.brick.position, cand.brick.type, cand.newRot);
+                    const tolerance = 0.005;
+                    const aMin = aBounds.min.clone().addScalar(tolerance);
+                    const aMax = aBounds.max.clone().subScalar(tolerance);
+
+                    for (const otherCand of candidates) {
+                        if (otherCand.brick.id === cand.brick.id) continue;
+
+                        const bBounds = getWorldBounds(otherCand.brick.position, otherCand.brick.type, otherCand.newRot);
+                        const bMin = bBounds.min.clone().addScalar(tolerance);
+                        const bMax = bBounds.max.clone().subScalar(tolerance);
+
+                        const intersect = (
+                            aMin.x < bMax.x && aMax.x > bMin.x &&
+                            aMin.y < bMax.y && aMax.y > bMin.y &&
+                            aMin.z < bMax.z && aMax.z > bMin.z
+                        );
+
+                        if (intersect) {
+                            isBlocked = true;
+                            break;
                         }
+                    }
+                    if (isBlocked) break;
+                }
+
+                if (isBlocked) {
+                    showToast("Rotation blocked by collision");
+                    return;
+                }
+
+                // 3. Apply rotation
+                candidates.forEach(cand => {
+                    cand.brick.rotation = cand.newRot;
+                    const mesh = brickMeshes.get(cand.brick.id);
+                    if (mesh) {
+                        mesh.rotation.set(
+                            THREE.MathUtils.degToRad(cand.newRot.x),
+                            THREE.MathUtils.degToRad(cand.newRot.y),
+                            THREE.MathUtils.degToRad(cand.newRot.z)
+                        );
                     }
                 });
                 saveToHistory();
@@ -1307,7 +1437,7 @@
             if (gameState.historyIndex < gameState.history.length - 1) {
                 gameState.history = gameState.history.slice(0, gameState.historyIndex + 1);
             }
-            
+
             // Deep clone current state
             const state = JSON.stringify(gameState.bricks.map(b => ({
                 id: b.id,
@@ -1316,9 +1446,9 @@
                 rotation: { ...b.rotation },
                 color: b.color
             })));
-            
+
             gameState.history.push(state);
-            
+
             if (gameState.history.length > CONFIG.maxHistory) {
                 gameState.history.shift();
             } else {
@@ -1348,7 +1478,7 @@
 
         function restoreFromHistory() {
             const state = JSON.parse(gameState.history[gameState.historyIndex]);
-            
+
             // Clear current meshes
             brickMeshes.forEach((mesh) => {
                 scene.remove(mesh);
@@ -1356,11 +1486,11 @@
                 mesh.material.dispose();
             });
             brickMeshes.clear();
-            
+
             // Restore bricks
             gameState.bricks = state;
             gameState.bricks.forEach(brick => createBrickMesh(brick));
-            
+
             gameState.selectedBrickIds = [];
             updateInfo();
         }
@@ -1369,7 +1499,7 @@
         function saveProject() {
             const name = prompt('Enter a name for your build:', 'My LEGO Creation');
             if (!name || name.trim() === '') return;
-            
+
             const saveData = {
                 name: name.trim(),
                 timestamp: Date.now(),
@@ -1380,15 +1510,15 @@
                     color: b.color
                 }))
             };
-            
+
             try {
                 let saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
                 saves.push(saveData);
-                
+
                 if (saves.length > 10) {
                     saves = saves.slice(-10);
                 }
-                
+
                 localStorage.setItem('legoBuilderSaves', JSON.stringify(saves));
                 showToast(`Saved: ${name}`);
             } catch (e) {
@@ -1398,16 +1528,16 @@
 
         function loadProject() {
             const saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
-            
+
             if (saves.length === 0) {
                 showToast('No saved builds found');
                 return;
             }
-            
+
             // Show save list modal
             const saveList = document.getElementById('save-list');
             saveList.innerHTML = '';
-            
+
             saves.forEach((save, index) => {
                 const item = document.createElement('div');
                 item.className = 'save-item';
@@ -1424,7 +1554,7 @@
                 });
                 saveList.appendChild(item);
             });
-            
+
             document.getElementById('save-modal').classList.add('show');
         }
 
@@ -1432,7 +1562,7 @@
             const saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
             if (index >= 0 && index < saves.length) {
                 clearAll(false);
-                
+
                 const save = saves[index];
                 save.bricks.forEach(brickData => {
                     const brick = {
@@ -1445,7 +1575,7 @@
                     gameState.bricks.push(brick);
                     createBrickMesh(brick);
                 });
-                
+
                 saveToHistory();
                 updateInfo();
                 showToast(`Loaded: ${save.name}`);
@@ -1454,11 +1584,11 @@
 
         function deleteSave(index) {
             if (!confirm('Delete this save?')) return;
-            
+
             let saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
             saves.splice(index, 1);
             localStorage.setItem('legoBuilderSaves', JSON.stringify(saves));
-            
+
             // Refresh the list
             loadProject();
             showToast('Save deleted');
@@ -1468,28 +1598,28 @@
             if (showConfirm && gameState.bricks.length > 0) {
                 if (!confirm('Clear all bricks? This cannot be undone.')) return;
             }
-            
+
             brickMeshes.forEach((mesh) => {
                 scene.remove(mesh);
                 mesh.geometry.dispose();
                 mesh.material.dispose();
             });
             brickMeshes.clear();
-            
+
             gameState.bricks = [];
             gameState.selectedBrickIds = [];
             gameState.history = [];
             gameState.historyIndex = -1;
-            
+
             saveToHistory();
             updateInfo();
-            
+
             if (showConfirm) showToast('All bricks cleared');
         }
 
         function exportScreenshot() {
             renderer.render(scene, camera);
-            
+
             try {
                 const dataURL = renderer.domElement.toDataURL('image/png');
                 const link = document.createElement('a');
@@ -1522,7 +1652,7 @@
                 });
                 inventory.appendChild(btn);
             });
-            
+
             // Color palette
             const palette = document.getElementById('color-palette');
             CONFIG.colors.forEach((color, index) => {
@@ -1538,29 +1668,29 @@
                 });
                 palette.appendChild(swatch);
             });
-            
+
             // Tool buttons
             document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     gameState.currentTool = btn.dataset.tool;
-                    
+
                     const toolName = btn.textContent.charAt(0).toUpperCase() + btn.textContent.slice(1);
                     document.getElementById('current-tool-header').textContent = toolName;
-                    
+
                     if (ghostBrick) {
                         ghostBrick.visible = false;
                     }
                 });
             });
-            
+
             // Rotation buttons
             document.getElementById('rotate-x').addEventListener('click', () => rotateAxis('x'));
             document.getElementById('rotate-y').addEventListener('click', () => rotateAxis('y'));
             document.getElementById('rotate-z').addEventListener('click', () => rotateAxis('z'));
             document.getElementById('reset-rotation').addEventListener('click', resetRotation);
-            
+
             // Action buttons
             document.getElementById('undo-btn').addEventListener('click', undo);
             document.getElementById('redo-btn').addEventListener('click', redo);
@@ -1577,7 +1707,7 @@
         function setupKeyboardShortcuts() {
             document.addEventListener('keydown', (e) => {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-                
+
                 switch (e.key) {
                     case 'Delete':
                     case 'Backspace':
@@ -1652,7 +1782,7 @@
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.classList.add('show');
-            
+
             clearTimeout(toast.hideTimeout);
             toast.hideTimeout = setTimeout(() => {
                 toast.classList.remove('show');
