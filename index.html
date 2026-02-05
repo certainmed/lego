@@ -452,11 +452,12 @@
                 <button class="action-btn" id="undo-btn" title="Undo (Ctrl+Z)">↩ Undo</button>
                 <button class="action-btn" id="redo-btn" title="Redo (Ctrl+Y)">↪ Redo</button>
                 <button class="action-btn" id="save-btn" title="Save project">💾 Save</button>
-                <button class="action-btn" id="load-btn" title="Load project">📂 Load</button>
+                <button class="action-btn" id="clone-btn" title="Duplicate selected">📋 Clone</button>
                 <button class="action-btn" id="export-btn" title="Export screenshot">📸 Export</button>
-                <button class="action-btn" id="reset-camera" title="Reset camera view">🎥 Camera</button>
+                <button class="action-btn" id="grid-btn" title="Toggle grid">📏 Grid</button>
+                <button class="action-btn" id="theme-btn" title="Toggle theme">🌗 Theme</button>
+                <button class="action-btn" id="select-all-btn" title="Select all bricks">✅ Select All</button>
                 <button class="action-btn danger" id="clear-btn" title="Clear all bricks">🗑 Clear</button>
-                <button class="action-btn" id="help-btn" title="Show help">❓ Help</button>
             </div>
         </div>
 
@@ -472,23 +473,6 @@
 
     <div id="toast"></div>
 
-    <div id="help-modal">
-        <div class="modal-content">
-            <h2>🧱 LEGO Builder Controls</h2>
-            <div class="shortcut"><span>Left Click</span><span class="key">Place / Select</span></div>
-            <div class="shortcut"><span>Right Drag</span><span class="key">Rotate Camera</span></div>
-            <div class="shortcut"><span>Scroll Wheel</span><span class="key">Zoom In/Out</span></div>
-            <div class="shortcut"><span>Delete / Backspace</span><span class="key">Delete Selected</span></div>
-            <div class="shortcut"><span>Arrow Up/Down</span><span class="key">Rotate X Axis</span></div>
-            <div class="shortcut"><span>Arrow Left/Right</span><span class="key">Rotate Y Axis</span></div>
-            <div class="shortcut"><span>Q / E</span><span class="key">Rotate Z Axis</span></div>
-            <div class="shortcut"><span>Ctrl + Z</span><span class="key">Undo</span></div>
-            <div class="shortcut"><span>Ctrl + Y</span><span class="key">Redo</span></div>
-            <div class="shortcut"><span>Shift + Click</span><span class="key">Multi-Select</span></div>
-            <div class="shortcut"><span>Escape</span><span class="key">Deselect All</span></div>
-            <button class="close-modal" onclick="closeModal('help-modal')">Close</button>
-        </div>
-    </div>
 
     <div id="save-modal">
         <div class="modal-content">
@@ -853,15 +837,6 @@
             camera.position.y = cameraState.target.y + cameraState.radius * Math.cos(cameraState.phi);
             camera.position.z = cameraState.target.z + cameraState.radius * Math.sin(cameraState.phi) * Math.sin(cameraState.theta);
             camera.lookAt(cameraState.target);
-        }
-
-        function resetCamera() {
-            cameraState.theta = Math.PI / 4;
-            cameraState.phi = Math.PI / 3;
-            cameraState.radius = 20;
-            cameraState.target.set(0, 0, 0);
-            updateCameraPosition();
-            showToast('Camera reset');
         }
 
         // ==================== RAYCASTING ====================
@@ -1526,72 +1501,95 @@
             }
         }
 
-        function loadProject() {
-            const saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
-
-            if (saves.length === 0) {
-                showToast('No saved builds found');
+        // ==================== NEW FEATURES ====================
+        function cloneSelected() {
+            if (gameState.selectedBrickIds.length === 0) {
+                showToast('No bricks selected');
                 return;
             }
 
-            // Show save list modal
-            const saveList = document.getElementById('save-list');
-            saveList.innerHTML = '';
+            const newBricks = [];
+            const newSelection = [];
 
-            saves.forEach((save, index) => {
-                const item = document.createElement('div');
-                item.className = 'save-item';
-                item.innerHTML = `
-                    <div>
-                        <div class="save-item-name">${escapeHtml(save.name)}</div>
-                        <div class="save-item-date">${new Date(save.timestamp).toLocaleDateString()} - ${save.bricks.length} bricks</div>
-                    </div>
-                    <button class="save-item-delete" onclick="event.stopPropagation(); deleteSave(${index})">Delete</button>
-                `;
-                item.addEventListener('click', () => {
-                    loadSave(index);
-                    closeModal('save-modal');
-                });
-                saveList.appendChild(item);
+            // Calculate offset (e.g. 1 unit in X)
+            const offsetX = CONFIG.studSize * 2; // 1 unit
+            const offsetZ = CONFIG.studSize * 2;
+
+            gameState.selectedBrickIds.forEach(id => {
+                const original = gameState.bricks.find(b => b.id === id);
+                if (original) {
+                    const newBrick = {
+                        id: generateId(),
+                        type: { ...original.type },
+                        position: {
+                            x: original.position.x + offsetX,
+                            y: original.position.y,
+                            z: original.position.z + offsetZ
+                        },
+                        rotation: { ...original.rotation },
+                        color: original.color
+                    };
+
+                    // Check if new position is valid, otherwise try another offset or just place it
+                    // Simple logic: just place it. Collision check happens during placement usually,
+                    // but here we are forcing it. If we want collision check:
+                    // if (checkCollision(...)) ...
+
+                    newBricks.push(newBrick);
+                    newSelection.push(newBrick.id);
+                }
             });
 
-            document.getElementById('save-modal').classList.add('show');
+            // Deselect originals
+            deselectAll();
+
+            // Add new bricks
+            newBricks.forEach(brick => {
+                gameState.bricks.push(brick);
+                createBrickMesh(brick);
+            });
+
+            // Select new bricks
+            newSelection.forEach(id => selectBrick(id));
+
+            saveToHistory();
+            updateInfo();
+            showToast(`Cloned ${newBricks.length} bricks`);
         }
 
-        function loadSave(index) {
-            const saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
-            if (index >= 0 && index < saves.length) {
-                clearAll(false);
-
-                const save = saves[index];
-                save.bricks.forEach(brickData => {
-                    const brick = {
-                        id: generateId(),
-                        type: brickData.type,
-                        position: brickData.position,
-                        rotation: brickData.rotation,
-                        color: brickData.color
-                    };
-                    gameState.bricks.push(brick);
-                    createBrickMesh(brick);
-                });
-
-                saveToHistory();
-                updateInfo();
-                showToast(`Loaded: ${save.name}`);
+        function toggleGrid() {
+            const gridHelper = scene.children.find(c => c instanceof THREE.GridHelper);
+            if (gridHelper) {
+                gridHelper.visible = !gridHelper.visible;
+                showToast(`Grid ${gridHelper.visible ? 'Show' : 'Hidden'}`);
             }
         }
 
-        function deleteSave(index) {
-            if (!confirm('Delete this save?')) return;
+        let isNightMode = false;
+        function toggleTheme() {
+            isNightMode = !isNightMode;
+            if (isNightMode) {
+                // Night
+                scene.background.setHex(0x050505);
+                scene.fog.color.setHex(0x050505);
+                document.body.style.background = '#020617';
+            } else {
+                // Default (Dark Blue)
+                scene.background.setHex(0x1a2634);
+                scene.fog.color.setHex(0x1a2634);
+                document.body.style.background = '#0f172a';
+            }
+             showToast(isNightMode ? 'Night Mode' : 'Day Mode');
+        }
 
-            let saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
-            saves.splice(index, 1);
-            localStorage.setItem('legoBuilderSaves', JSON.stringify(saves));
-
-            // Refresh the list
-            loadProject();
-            showToast('Save deleted');
+        function selectAll() {
+            deselectAll();
+            gameState.bricks.forEach(b => {
+                gameState.selectedBrickIds.push(b.id);
+                updateBrickHighlight(b.id, true);
+            });
+            updateInfo();
+            showToast('Selected All');
         }
 
         function clearAll(showConfirm = true) {
@@ -1695,13 +1693,12 @@
             document.getElementById('undo-btn').addEventListener('click', undo);
             document.getElementById('redo-btn').addEventListener('click', redo);
             document.getElementById('save-btn').addEventListener('click', saveProject);
-            document.getElementById('load-btn').addEventListener('click', loadProject);
+            document.getElementById('clone-btn').addEventListener('click', cloneSelected);
             document.getElementById('export-btn').addEventListener('click', exportScreenshot);
+            document.getElementById('grid-btn').addEventListener('click', toggleGrid);
+            document.getElementById('theme-btn').addEventListener('click', toggleTheme);
+            document.getElementById('select-all-btn').addEventListener('click', selectAll);
             document.getElementById('clear-btn').addEventListener('click', () => clearAll(true));
-            document.getElementById('reset-camera').addEventListener('click', resetCamera);
-            document.getElementById('help-btn').addEventListener('click', () => {
-                document.getElementById('help-modal').classList.add('show');
-            });
         }
 
         function setupKeyboardShortcuts() {
@@ -1760,7 +1757,6 @@
                         break;
                     case 'Escape':
                         deselectAll();
-                        closeModal('help-modal');
                         closeModal('save-modal');
                         break;
                 }
