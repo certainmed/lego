@@ -327,13 +327,39 @@
         }
 
         /* Modals */
+        #save-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
+        }
+
+        #save-modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         .modal-content {
             background: #1e293b;
             padding: 32px;
             border-radius: 24px;
             border: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 90%;
             max-width: 500px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .modal-content h2 {
@@ -343,45 +369,29 @@
             background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
         }
 
-        .shortcut {
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding: 12px 0;
-            color: #cbd5e1;
-        }
-
-        .key {
-            background: #334155;
-            color: #38bdf8;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
-            font-weight: 600;
-        }
-
-        .close-modal {
-            background: #3b82f6;
-            color: #fff;
-            padding: 12px;
+        .save-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
             border-radius: 12px;
-            font-weight: 600;
-            margin-top: 24px;
-            transition: all 0.2s;
-        }
-
-        .close-modal:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
         }
 
         .save-item {
             background: #334155;
             border-radius: 12px;
             margin-bottom: 8px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border: 1px solid transparent;
+            transition: all 0.2s;
         }
 
         .save-item:hover {
@@ -389,14 +399,73 @@
             border-color: #64748b;
         }
 
-        .save-item-delete {
+        .save-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .save-name {
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .save-date {
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
+        .save-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .save-btn-action {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .load-btn {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .load-btn:hover {
+            background: #2563eb;
+        }
+
+        .delete-btn {
             background: rgba(220, 38, 38, 0.2);
             color: #fca5a5;
         }
 
-        .save-item-delete:hover {
+        .delete-btn:hover {
             background: rgba(220, 38, 38, 0.4);
+            color: #fff;
         }
+
+        .close-modal {
+            background: #334155;
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .close-modal:hover {
+            background: #475569;
+        }
+
 </style>
 </head>
 <body>
@@ -451,13 +520,21 @@
             <div class="action-buttons">
                 <button class="action-btn" id="undo-btn" title="Undo (Ctrl+Z)">↩ Undo</button>
                 <button class="action-btn" id="redo-btn" title="Redo (Ctrl+Y)">↪ Redo</button>
-                <button class="action-btn" id="save-btn" title="Save project">💾 Save</button>
+                <button class="action-btn" id="save-btn" title="Save/Load project">💾 Save</button>
                 <button class="action-btn" id="clone-btn" title="Duplicate selected">📋 Clone</button>
                 <button class="action-btn" id="export-btn" title="Export screenshot">📸 Export</button>
                 <button class="action-btn" id="grid-btn" title="Toggle grid">📏 Grid</button>
                 <button class="action-btn" id="theme-btn" title="Toggle theme">🌗 Theme</button>
                 <button class="action-btn" id="select-all-btn" title="Select all bricks">✅ Select All</button>
                 <button class="action-btn danger" id="clear-btn" title="Clear all bricks">🗑 Clear</button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <h3>😈 Cheats</h3>
+            <div class="action-buttons">
+                <button class="action-btn" id="cheat-noclip" title="Toggle collision (No Clip)">👻 No Clip</button>
+                <button class="action-btn" id="cheat-random" title="Randomize colors">🌈 Colors</button>
             </div>
         </div>
 
@@ -477,6 +554,7 @@
     <div id="save-modal">
         <div class="modal-content">
             <h2>📂 Saved Builds</h2>
+            <button class="action-btn" style="margin-bottom: 10px; width: 100%;" onclick="saveProjectCurrent()">+ Save Current Build</button>
             <div class="save-list" id="save-list"></div>
             <button class="close-modal" onclick="closeModal('save-modal')">Close</button>
         </div>
@@ -517,6 +595,297 @@
             ]
         };
 
+        // ==================== SYSTEMS ====================
+
+        // Spatial Grid for optimized collision/gravity
+        class SpatialGrid {
+            constructor(cellSize = CONFIG.studSize) {
+                this.cellSize = cellSize;
+                this.cells = new Map(); // "x,z" -> Set<brickId>
+            }
+
+            getKey(x, z) {
+                const cx = Math.floor(x / this.cellSize);
+                const cz = Math.floor(z / this.cellSize);
+                return `${cx},${cz}`;
+            }
+
+            // Get all cells a brick occupies
+            getBrickCells(brick) {
+                const keys = new Set();
+                const bounds = getWorldBounds(brick.position, brick.type, brick.rotation);
+                // Expand bounds slightly to catch edges
+                const minX = Math.floor(bounds.min.x / this.cellSize);
+                const maxX = Math.floor(bounds.max.x / this.cellSize);
+                const minZ = Math.floor(bounds.min.z / this.cellSize);
+                const maxZ = Math.floor(bounds.max.z / this.cellSize);
+
+                for (let x = minX; x <= maxX; x++) {
+                    for (let z = minZ; z <= maxZ; z++) {
+                        keys.add(`${x},${z}`);
+                    }
+                }
+                return keys;
+            }
+
+            add(brick) {
+                const keys = this.getBrickCells(brick);
+                keys.forEach(key => {
+                    if (!this.cells.has(key)) this.cells.set(key, new Set());
+                    this.cells.get(key).add(brick.id);
+                });
+            }
+
+            remove(brick) {
+                const keys = this.getBrickCells(brick);
+                keys.forEach(key => {
+                    if (this.cells.has(key)) {
+                        const cell = this.cells.get(key);
+                        cell.delete(brick.id);
+                        if (cell.size === 0) this.cells.delete(key);
+                    }
+                });
+            }
+
+            getNearbyBricks(brick, excludeId = null) {
+                const candidates = new Set();
+                const keys = this.getBrickCells(brick);
+                keys.forEach(key => {
+                    if (this.cells.has(key)) {
+                        this.cells.get(key).forEach(id => {
+                            if (id !== brick.id && id !== excludeId) {
+                                candidates.add(id);
+                            }
+                        });
+                    }
+                });
+                return Array.from(candidates);
+            }
+
+            clear() {
+                this.cells.clear();
+            }
+        }
+
+        // Render Manager for InstancedMesh
+        class RenderManager {
+            constructor() {
+                this.instancedMeshes = new Map(); // typeId -> InstancedMesh
+                this.brickToInstance = new Map(); // brickId -> { typeId, instanceId }
+                this.geometries = new Map(); // typeId -> BufferGeometry
+                this.selectionMeshes = new Map(); // brickId -> Mesh (LineSegments)
+            }
+
+            init(scene) {
+                this.scene = scene;
+                // Pre-generate geometries
+                CONFIG.brickTypes.forEach(type => {
+                    const geo = createBrickGeometry(type);
+                    this.geometries.set(type.id, geo);
+
+                    // Create InstancedMesh
+                    const material = new THREE.MeshStandardMaterial({
+                        roughness: 0.3,
+                        metalness: 0.1
+                    });
+                    const maxCount = 10000;
+                    const mesh = new THREE.InstancedMesh(geo, material, maxCount);
+                    mesh.count = 0;
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    mesh.userData.typeId = type.id;
+
+                    // Initialize matrix array to avoid bounding box issues
+                    // for (let i = 0; i < maxCount; i++) mesh.setMatrixAt(i, new THREE.Matrix4());
+
+                    scene.add(mesh);
+                    this.instancedMeshes.set(type.id, mesh);
+                });
+            }
+
+            addBrick(brick) {
+                const mesh = this.instancedMeshes.get(brick.type.id);
+                if (!mesh) return;
+
+                if (mesh.count >= mesh.instanceMatrix.count) {
+                    console.warn('Max brick count reached for type ' + brick.type.id);
+                    // TODO: Resize logic could go here
+                    return;
+                }
+
+                const index = mesh.count;
+
+                // Update matrix
+                const matrix = new THREE.Matrix4();
+                const rotation = new THREE.Euler(
+                    THREE.MathUtils.degToRad(brick.rotation.x),
+                    THREE.MathUtils.degToRad(brick.rotation.y),
+                    THREE.MathUtils.degToRad(brick.rotation.z),
+                    'XYZ'
+                );
+                const quaternion = new THREE.Quaternion().setFromEuler(rotation);
+                matrix.compose(
+                    new THREE.Vector3(brick.position.x, brick.position.y, brick.position.z),
+                    quaternion,
+                    new THREE.Vector3(1, 1, 1)
+                );
+
+                mesh.setMatrixAt(index, matrix);
+                mesh.setColorAt(index, new THREE.Color(brick.color));
+
+                mesh.count++;
+                mesh.instanceMatrix.needsUpdate = true;
+                if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+
+                // Map brickId to this instance
+                this.brickToInstance.set(brick.id, {
+                    typeId: brick.type.id,
+                    instanceId: index
+                });
+
+                // Store brickId in mesh userData for raycasting reverse lookup
+                if (!mesh.userData.brickIds) mesh.userData.brickIds = [];
+                mesh.userData.brickIds[index] = brick.id;
+            }
+
+            removeBrick(brickId) {
+                const info = this.brickToInstance.get(brickId);
+                if (!info) return;
+
+                const mesh = this.instancedMeshes.get(info.typeId);
+                const index = info.instanceId;
+                const lastIndex = mesh.count - 1;
+
+                if (index !== lastIndex) {
+                    // Swap with last
+                    const lastMatrix = new THREE.Matrix4();
+                    const lastColor = new THREE.Color();
+
+                    mesh.getMatrixAt(lastIndex, lastMatrix);
+                    mesh.getColorAt(lastIndex, lastColor);
+
+                    mesh.setMatrixAt(index, lastMatrix);
+                    mesh.setColorAt(index, lastColor);
+
+                    // Update map for the moved brick
+                    const lastBrickId = mesh.userData.brickIds[lastIndex];
+                    this.brickToInstance.set(lastBrickId, {
+                        typeId: info.typeId,
+                        instanceId: index
+                    });
+                    mesh.userData.brickIds[index] = lastBrickId;
+                }
+
+                mesh.count--;
+                mesh.instanceMatrix.needsUpdate = true;
+                if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+
+                this.brickToInstance.delete(brickId);
+                this.removeHighlight(brickId);
+            }
+
+            updateBrickColor(brick) {
+                const info = this.brickToInstance.get(brick.id);
+                if (!info) return;
+
+                const mesh = this.instancedMeshes.get(info.typeId);
+                mesh.setColorAt(info.instanceId, new THREE.Color(brick.color));
+                if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+            }
+
+            updateBrickTransformation(brick) {
+                // Remove and re-add is easiest to handle sorting/swapping logic,
+                // but updating matrix in place is faster if we didn't use swap-remove.
+                // Since we use swap-remove, ID persistence at index is fragile if we don't track it carefully.
+                // Re-using setMatrixAt is fine.
+                const info = this.brickToInstance.get(brick.id);
+                if (!info) return;
+
+                const mesh = this.instancedMeshes.get(info.typeId);
+                const matrix = new THREE.Matrix4();
+                 const rotation = new THREE.Euler(
+                    THREE.MathUtils.degToRad(brick.rotation.x),
+                    THREE.MathUtils.degToRad(brick.rotation.y),
+                    THREE.MathUtils.degToRad(brick.rotation.z),
+                    'XYZ'
+                );
+                const quaternion = new THREE.Quaternion().setFromEuler(rotation);
+                matrix.compose(
+                    new THREE.Vector3(brick.position.x, brick.position.y, brick.position.z),
+                    quaternion,
+                    new THREE.Vector3(1, 1, 1)
+                );
+                mesh.setMatrixAt(info.instanceId, matrix);
+                mesh.instanceMatrix.needsUpdate = true;
+            }
+
+            addHighlight(brick) {
+                if (this.selectionMeshes.has(brick.id)) return;
+
+                const geometry = new THREE.EdgesGeometry(createBrickGeometry(brick.type));
+                const material = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
+                const mesh = new THREE.LineSegments(geometry, material);
+
+                mesh.position.set(brick.position.x, brick.position.y, brick.position.z);
+                mesh.rotation.set(
+                    THREE.MathUtils.degToRad(brick.rotation.x),
+                    THREE.MathUtils.degToRad(brick.rotation.y),
+                    THREE.MathUtils.degToRad(brick.rotation.z)
+                );
+
+                this.scene.add(mesh);
+                this.selectionMeshes.set(brick.id, mesh);
+            }
+
+            removeHighlight(brickId) {
+                const mesh = this.selectionMeshes.get(brickId);
+                if (mesh) {
+                    this.scene.remove(mesh);
+                    mesh.geometry.dispose();
+                    mesh.material.dispose();
+                    this.selectionMeshes.delete(brickId);
+                }
+            }
+
+            clear() {
+                this.instancedMeshes.forEach(mesh => {
+                    mesh.count = 0;
+                    mesh.instanceMatrix.needsUpdate = true;
+                    mesh.userData.brickIds = [];
+                });
+                this.brickToInstance.clear();
+
+                this.selectionMeshes.forEach(mesh => {
+                    this.scene.remove(mesh);
+                    mesh.geometry.dispose();
+                    mesh.material.dispose();
+                });
+                this.selectionMeshes.clear();
+            }
+
+            getRaycastIntersects(raycaster) {
+                // Gather all instanced meshes
+                const meshes = Array.from(this.instancedMeshes.values());
+                const intersects = raycaster.intersectObjects(meshes, false);
+
+                if (intersects.length > 0) {
+                    const hit = intersects[0];
+                    const mesh = hit.object;
+                    const instanceId = hit.instanceId;
+
+                    if (mesh.userData.brickIds && mesh.userData.brickIds[instanceId]) {
+                         return {
+                             brickId: mesh.userData.brickIds[instanceId],
+                             object: mesh,
+                             point: hit.point,
+                             face: hit.face
+                         };
+                    }
+                }
+                return null;
+            }
+        }
+
         // ==================== GAME STATE ====================
         let gameState = {
             bricks: [],
@@ -526,13 +895,18 @@
             currentTool: 'place',
             currentBrickType: CONFIG.brickTypes[0],
             currentColor: CONFIG.colors[0].hex,
-            currentRotation: { x: 0, y: 0, z: 0 }
+            currentRotation: { x: 0, y: 0, z: 0 },
+            cheats: {
+                noClip: false
+            }
         };
+
+        const renderManager = new RenderManager();
+        const spatialGrid = new SpatialGrid();
 
         // ==================== THREE.JS VARIABLES ====================
         let scene, camera, renderer;
         let ghostBrick = null;
-        let brickMeshes = new Map();
         let groundPlane;
 
         // Camera control state
@@ -554,7 +928,7 @@
             setupKeyboardShortcuts();
             saveToHistory();
             updateInfo();
-            showToast('Welcome to LEGO Builder! Click to place bricks.');
+            showToast('Welcome to LEGO Builder!');
         }
 
         function initThree() {
@@ -589,6 +963,9 @@
 
             // Ground and Grid
             createGroundAndGrid();
+
+            // Initialize Render Manager
+            renderManager.init(scene);
 
             // Ghost brick preview
             createGhostBrick();
@@ -664,31 +1041,21 @@
             scene.add(axesHelper);
         }
 
-        function createBrickGeometry(brickType, withRotation = null) {
-            const effectiveType = { ...brickType };
-
-            // Handle rotation swapping dimensions
-            if (withRotation) {
-                const yRot = ((withRotation.y % 360) + 360) % 360;
-                if (yRot === 90 || yRot === 270) {
-                    effectiveType.width = brickType.depth;
-                    effectiveType.depth = brickType.width;
-                }
-            }
-
-            const width = effectiveType.width * CONFIG.studSize;
-            const depth = effectiveType.depth * CONFIG.studSize;
-            const height = effectiveType.type === 'plate' ? CONFIG.plateHeight : CONFIG.brickHeight;
+        function createBrickGeometry(brickType) {
+             // Geometry reuse is handled by RenderManager init, but we keep this for ghost brick and helpers
+            const width = brickType.width * CONFIG.studSize;
+            const depth = brickType.depth * CONFIG.studSize;
+            const height = brickType.type === 'plate' ? CONFIG.plateHeight : CONFIG.brickHeight;
 
             const group = new THREE.Group();
 
-            // Main body with slight bevel effect
+            // Main body
             const bodyGeo = new THREE.BoxGeometry(width - 0.02, height - 0.02, depth - 0.02);
             const bodyMesh = new THREE.Mesh(bodyGeo);
             bodyMesh.position.y = height / 2;
             group.add(bodyMesh);
 
-            // Add studs on top
+            // Add studs
             const studRadius = CONFIG.studSize * 0.3;
             const studHeight = 0.12;
             const studGeo = new THREE.CylinderGeometry(studRadius, studRadius * 1.05, studHeight, 12);
@@ -703,9 +1070,7 @@
                 }
             }
 
-            // Merge into single geometry
-            const mergedGeo = mergeGroupGeometry(group);
-            return mergedGeo;
+            return mergeGroupGeometry(group);
         }
 
         function mergeGroupGeometry(group) {
@@ -852,12 +1217,10 @@
 
             raycaster.setFromCamera(mouse, camera);
 
-            // Check bricks first
-            const brickMeshArray = Array.from(brickMeshes.values());
-            const brickIntersects = raycaster.intersectObjects(brickMeshArray);
-
-            if (brickIntersects.length > 0) {
-                return { type: 'brick', intersection: brickIntersects[0] };
+            // Check bricks via RenderManager
+            const brickHit = renderManager.getRaycastIntersects(raycaster);
+            if (brickHit) {
+                return { type: 'brick', intersection: brickHit, brickId: brickHit.brickId };
             }
 
             // Check ground
@@ -890,7 +1253,7 @@
 
                 let y = 0;
                 if (result.type === 'brick') {
-                    const hitBrick = getBrickByMesh(result.intersection.object);
+                    const hitBrick = gameState.bricks.find(b => b.id === result.brickId);
                     if (hitBrick) {
                         const bBounds = getWorldBounds(hitBrick.position, hitBrick.type, hitBrick.rotation);
                         y = bBounds.max.y;
@@ -945,21 +1308,6 @@
             };
         }
 
-        function getBrickHeight(type) {
-            return type.type === 'plate' ? CONFIG.plateHeight : CONFIG.brickHeight;
-        }
-
-        function getEffectiveDimensions(brickType, rotation) {
-            let width = brickType.width;
-            let depth = brickType.depth;
-
-            const yRot = ((rotation.y % 360) + 360) % 360;
-            if (yRot === 90 || yRot === 270) {
-                return { width: depth, depth: width };
-            }
-            return { width, depth };
-        }
-
         function getLocalBounds(brickType, rotation) {
             const w = brickType.width * CONFIG.studSize;
             const h = brickType.type === 'plate' ? CONFIG.plateHeight : CONFIG.brickHeight;
@@ -1010,6 +1358,12 @@
 
         function checkCollision(x, y, z, brickType, rotation, excludeIds = []) {
             const excludes = Array.isArray(excludeIds) ? excludeIds : (excludeIds ? [excludeIds] : []);
+            const testBrick = {
+                id: 'temp',
+                position: {x,y,z},
+                type: brickType,
+                rotation
+            };
 
             const bounds = getWorldBounds({x, y, z}, brickType, rotation);
             const tolerance = 0.005;
@@ -1018,8 +1372,13 @@
             const aMin = bounds.min.clone().addScalar(tolerance);
             const aMax = bounds.max.clone().subScalar(tolerance);
 
-            for (const brick of gameState.bricks) {
-                if (excludes.includes(brick.id)) continue;
+            // Use spatial grid to find candidates
+            const candidates = spatialGrid.getNearbyBricks(testBrick, null);
+
+            for (const id of candidates) {
+                if (excludes.includes(id)) continue;
+                const brick = gameState.bricks.find(b => b.id === id);
+                if (!brick) continue;
 
                 const bBounds = getWorldBounds(brick.position, brick.type, brick.rotation);
                 const bMin = bBounds.min.clone().addScalar(tolerance);
@@ -1052,12 +1411,12 @@
                     break;
                 case 'paint':
                     if (result && result.type === 'brick') {
-                        paintBrick(result.intersection.object);
+                        paintBrick(result.brickId);
                     }
                     break;
                 case 'delete':
                     if (result && result.type === 'brick') {
-                        deleteBrickByMesh(result.intersection.object);
+                        deleteBrick(result.brickId);
                     }
                     break;
             }
@@ -1072,7 +1431,7 @@
 
             let y = 0;
             if (result.type === 'brick') {
-                const hitBrick = getBrickByMesh(result.intersection.object);
+                const hitBrick = gameState.bricks.find(b => b.id === result.brickId);
                 if (hitBrick) {
                     const bBounds = getWorldBounds(hitBrick.position, hitBrick.type, hitBrick.rotation);
                     y = bBounds.max.y;
@@ -1083,7 +1442,7 @@
             const placementY = y - local.min.y;
 
             // Check for collision
-            if (checkCollision(snapped.x, placementY, snapped.z, brickType, rotation)) {
+            if (!gameState.cheats.noClip && checkCollision(snapped.x, placementY, snapped.z, brickType, rotation)) {
                 showToast('Cannot place here - collision!');
                 return;
             }
@@ -1104,37 +1463,11 @@
             };
 
             gameState.bricks.push(brick);
-            createBrickMesh(brick);
+            renderManager.addBrick(brick);
+            spatialGrid.add(brick);
+
             saveToHistory();
             updateInfo();
-        }
-
-        function createBrickMesh(brick) {
-            const geometry = createBrickGeometry(brick.type);
-            const material = new THREE.MeshStandardMaterial({
-                color: brick.color,
-                roughness: 0.35,
-                metalness: 0.05
-            });
-
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(brick.position.x, brick.position.y, brick.position.z);
-            mesh.rotation.set(
-                THREE.MathUtils.degToRad(brick.rotation.x),
-                THREE.MathUtils.degToRad(brick.rotation.y),
-                THREE.MathUtils.degToRad(brick.rotation.z)
-            );
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            mesh.userData.brickId = brick.id;
-
-            scene.add(mesh);
-            brickMeshes.set(brick.id, mesh);
-        }
-
-        function getBrickByMesh(mesh) {
-            const id = mesh.userData.brickId;
-            return gameState.bricks.find(b => b.id === id);
         }
 
         function handleSelection(event, result) {
@@ -1145,14 +1478,14 @@
                 return;
             }
 
-            const brick = getBrickByMesh(result.intersection.object);
-            if (!brick) return;
+            const brickId = result.brickId;
+            if (!brickId) return;
 
             if (isShift) {
-                toggleSelection(brick.id);
+                toggleSelection(brickId);
             } else {
                 deselectAll();
-                selectBrick(brick.id);
+                selectBrick(brickId);
             }
 
             updateInfo();
@@ -1161,7 +1494,9 @@
         function selectBrick(id) {
             if (!gameState.selectedBrickIds.includes(id)) {
                 gameState.selectedBrickIds.push(id);
-                updateBrickHighlight(id, true);
+                // Get brick
+                const brick = gameState.bricks.find(b => b.id === id);
+                if (brick) renderManager.addHighlight(brick);
             }
         }
 
@@ -1169,7 +1504,7 @@
             const index = gameState.selectedBrickIds.indexOf(id);
             if (index > -1) {
                 gameState.selectedBrickIds.splice(index, 1);
-                updateBrickHighlight(id, false);
+                renderManager.removeHighlight(id);
             }
         }
 
@@ -1182,51 +1517,28 @@
         }
 
         function deselectAll() {
-            gameState.selectedBrickIds.forEach(id => updateBrickHighlight(id, false));
+            gameState.selectedBrickIds.forEach(id => renderManager.removeHighlight(id));
             gameState.selectedBrickIds = [];
             updateInfo();
         }
 
-        function updateBrickHighlight(id, isSelected) {
-            const mesh = brickMeshes.get(id);
-            if (mesh) {
-                if (isSelected) {
-                    mesh.material.emissive = new THREE.Color(0xffaa00);
-                    mesh.material.emissiveIntensity = 0.4;
-                } else {
-                    mesh.material.emissive = new THREE.Color(0x000000);
-                    mesh.material.emissiveIntensity = 0;
-                }
-            }
-        }
-
-        function paintBrick(mesh) {
-            const brick = getBrickByMesh(mesh);
+        function paintBrick(brickId) {
+            const brick = gameState.bricks.find(b => b.id === brickId);
             if (brick) {
                 brick.color = gameState.currentColor;
-                mesh.material.color.set(gameState.currentColor);
+                renderManager.updateBrickColor(brick);
                 saveToHistory();
                 showToast('Color applied');
             }
         }
 
-        function deleteBrickByMesh(mesh) {
-            const brick = getBrickByMesh(mesh);
-            if (brick) deleteBrick(brick.id);
-        }
-
         function deleteBrick(id) {
             const index = gameState.bricks.findIndex(b => b.id === id);
             if (index > -1) {
+                const brick = gameState.bricks[index];
+                spatialGrid.remove(brick);
+                renderManager.removeBrick(id);
                 gameState.bricks.splice(index, 1);
-
-                const mesh = brickMeshes.get(id);
-                if (mesh) {
-                    scene.remove(mesh);
-                    mesh.geometry.dispose();
-                    mesh.material.dispose();
-                    brickMeshes.delete(id);
-                }
 
                 deselectBrick(id);
                 applyGravity();
@@ -1246,18 +1558,18 @@
             idsToDelete.forEach(id => {
                 const index = gameState.bricks.findIndex(b => b.id === id);
                 if (index > -1) {
+                    const brick = gameState.bricks[index];
+                    spatialGrid.remove(brick);
+                    renderManager.removeBrick(id);
                     gameState.bricks.splice(index, 1);
-                    const mesh = brickMeshes.get(id);
-                    if (mesh) {
-                        scene.remove(mesh);
-                        mesh.geometry.dispose();
-                        mesh.material.dispose();
-                        brickMeshes.delete(id);
-                    }
                 }
             });
 
             gameState.selectedBrickIds = [];
+            renderManager.selectionMeshes.forEach((mesh, id) => {
+                if (idsToDelete.includes(id)) renderManager.removeHighlight(id);
+            });
+
             applyGravity();
             saveToHistory();
             updateInfo();
@@ -1273,11 +1585,19 @@
             for (const brick of gameState.bricks) {
                 const newY = findSupportLevel(brick);
                 if (Math.abs(newY - brick.position.y) > 0.01) {
+                    // Update spatial grid: remove old, add new
+                    spatialGrid.remove(brick);
                     brick.position.y = newY;
-                    const mesh = brickMeshes.get(brick.id);
-                    if (mesh) {
-                        mesh.position.y = newY;
+                    spatialGrid.add(brick);
+
+                    renderManager.updateBrickTransformation(brick);
+
+                    // Update highlight if selected
+                    if (gameState.selectedBrickIds.includes(brick.id)) {
+                        renderManager.removeHighlight(brick.id);
+                        renderManager.addHighlight(brick);
                     }
+
                     changed = true;
                 }
             }
@@ -1300,8 +1620,12 @@
 
             let maxSupportY = 0;
 
-            for (const other of gameState.bricks) {
-                if (other.id === brick.id) continue;
+            // Optimization: Use spatial grid to check only nearby bricks
+            const candidates = spatialGrid.getNearbyBricks(brick);
+
+            for (const id of candidates) {
+                const other = gameState.bricks.find(b => b.id === id);
+                if (!other) continue;
 
                 const bBounds = getWorldBounds(other.position, other.type, other.rotation);
 
@@ -1340,7 +1664,7 @@
 
                 // 2. Check collisions
                 for (const cand of candidates) {
-                    // Check against unselected bricks (using the updated checkCollision that supports array of excludes)
+                    // Check against unselected bricks
                     if (checkCollision(cand.brick.position.x, cand.brick.position.y, cand.brick.position.z, cand.brick.type, cand.newRot, gameState.selectedBrickIds)) {
                         isBlocked = true;
                         break;
@@ -1381,14 +1705,10 @@
                 // 3. Apply rotation
                 candidates.forEach(cand => {
                     cand.brick.rotation = cand.newRot;
-                    const mesh = brickMeshes.get(cand.brick.id);
-                    if (mesh) {
-                        mesh.rotation.set(
-                            THREE.MathUtils.degToRad(cand.newRot.x),
-                            THREE.MathUtils.degToRad(cand.newRot.y),
-                            THREE.MathUtils.degToRad(cand.newRot.z)
-                        );
-                    }
+                    renderManager.updateBrickTransformation(cand.brick);
+                    // Update highlight
+                    renderManager.removeHighlight(cand.brick.id);
+                    renderManager.addHighlight(cand.brick);
                 });
                 saveToHistory();
             }
@@ -1454,29 +1774,43 @@
         function restoreFromHistory() {
             const state = JSON.parse(gameState.history[gameState.historyIndex]);
 
-            // Clear current meshes
-            brickMeshes.forEach((mesh) => {
-                scene.remove(mesh);
-                mesh.geometry.dispose();
-                mesh.material.dispose();
-            });
-            brickMeshes.clear();
+            // Clear render manager and spatial grid
+            renderManager.clear();
+            spatialGrid.clear();
+            gameState.bricks = [];
+            gameState.selectedBrickIds = [];
 
             // Restore bricks
-            gameState.bricks = state;
-            gameState.bricks.forEach(brick => createBrickMesh(brick));
+            state.forEach(brick => {
+                 gameState.bricks.push(brick);
+                 renderManager.addBrick(brick);
+                 spatialGrid.add(brick);
+            });
 
-            gameState.selectedBrickIds = [];
             updateInfo();
         }
 
         // ==================== SAVE/LOAD ====================
-        function saveProject() {
+        function toggleSaveModal() {
+            const modal = document.getElementById('save-modal');
+            if (modal.classList.contains('show')) {
+                closeModal('save-modal');
+            } else {
+                updateSaveList();
+                modal.classList.add('show');
+            }
+        }
+
+        function saveProjectCurrent() {
             const name = prompt('Enter a name for your build:', 'My LEGO Creation');
             if (!name || name.trim() === '') return;
 
+            saveProject(name.trim());
+        }
+
+        function saveProject(name) {
             const saveData = {
-                name: name.trim(),
+                name: name,
                 timestamp: Date.now(),
                 bricks: gameState.bricks.map(b => ({
                     type: b.type,
@@ -1490,14 +1824,100 @@
                 let saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
                 saves.push(saveData);
 
-                if (saves.length > 10) {
-                    saves = saves.slice(-10);
+                // No limit on saves? maybe 20
+                if (saves.length > 20) {
+                    saves.shift(); // Remove oldest
                 }
 
                 localStorage.setItem('legoBuilderSaves', JSON.stringify(saves));
                 showToast(`Saved: ${name}`);
+                updateSaveList();
             } catch (e) {
+                console.error(e);
                 showToast('Error saving - storage may be full');
+            }
+        }
+
+        function updateSaveList() {
+             const list = document.getElementById('save-list');
+             list.innerHTML = '';
+
+             let saves = [];
+             try {
+                saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
+             } catch(e) {}
+
+             if (saves.length === 0) {
+                 list.innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 20px;">No saved builds</div>';
+                 return;
+             }
+
+             saves.slice().reverse().forEach((save, index) => {
+                 // Index in original array
+                 const originalIndex = saves.length - 1 - index;
+
+                 const item = document.createElement('div');
+                 item.className = 'save-item';
+
+                 const date = new Date(save.timestamp).toLocaleString();
+
+                 item.innerHTML = `
+                    <div class="save-item-info">
+                        <div class="save-name">${escapeHtml(save.name)}</div>
+                        <div class="save-date">${date} • ${save.bricks.length} bricks</div>
+                    </div>
+                    <div class="save-actions">
+                        <button class="save-btn-action load-btn" onclick="loadProject(${originalIndex})">Load</button>
+                        <button class="save-btn-action delete-btn" onclick="deleteSave(${originalIndex})">Delete</button>
+                    </div>
+                 `;
+                 list.appendChild(item);
+             });
+        }
+
+        function loadProject(index) {
+             let saves = [];
+             try {
+                saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
+             } catch(e) {}
+
+             if (saves[index]) {
+                 if (confirm('Load this build? Current unsaved progress will be lost.')) {
+                     const save = saves[index];
+
+                     renderManager.clear();
+                     spatialGrid.clear();
+                     gameState.bricks = [];
+                     gameState.selectedBrickIds = [];
+                     gameState.history = [];
+                     gameState.historyIndex = -1;
+
+                     save.bricks.forEach(b => {
+                         // Ensure ID is generated if missing (older saves)
+                         const brick = { ...b, id: generateId() };
+                         gameState.bricks.push(brick);
+                         renderManager.addBrick(brick);
+                         spatialGrid.add(brick);
+                     });
+
+                     saveToHistory();
+                     updateInfo();
+                     closeModal('save-modal');
+                     showToast(`Loaded: ${save.name}`);
+                 }
+             }
+        }
+
+        function deleteSave(index) {
+            if (confirm('Delete this saved build?')) {
+                 let saves = [];
+                 try {
+                    saves = JSON.parse(localStorage.getItem('legoBuilderSaves') || '[]');
+                 } catch(e) {}
+
+                 saves.splice(index, 1);
+                 localStorage.setItem('legoBuilderSaves', JSON.stringify(saves));
+                 updateSaveList();
             }
         }
 
@@ -1530,11 +1950,6 @@
                         color: original.color
                     };
 
-                    // Check if new position is valid, otherwise try another offset or just place it
-                    // Simple logic: just place it. Collision check happens during placement usually,
-                    // but here we are forcing it. If we want collision check:
-                    // if (checkCollision(...)) ...
-
                     newBricks.push(newBrick);
                     newSelection.push(newBrick.id);
                 }
@@ -1546,7 +1961,8 @@
             // Add new bricks
             newBricks.forEach(brick => {
                 gameState.bricks.push(brick);
-                createBrickMesh(brick);
+                renderManager.addBrick(brick);
+                spatialGrid.add(brick);
             });
 
             // Select new bricks
@@ -1586,7 +2002,7 @@
             deselectAll();
             gameState.bricks.forEach(b => {
                 gameState.selectedBrickIds.push(b.id);
-                updateBrickHighlight(b.id, true);
+                renderManager.addHighlight(b);
             });
             updateInfo();
             showToast('Selected All');
@@ -1597,12 +2013,8 @@
                 if (!confirm('Clear all bricks? This cannot be undone.')) return;
             }
 
-            brickMeshes.forEach((mesh) => {
-                scene.remove(mesh);
-                mesh.geometry.dispose();
-                mesh.material.dispose();
-            });
-            brickMeshes.clear();
+            renderManager.clear();
+            spatialGrid.clear();
 
             gameState.bricks = [];
             gameState.selectedBrickIds = [];
@@ -1692,13 +2104,49 @@
             // Action buttons
             document.getElementById('undo-btn').addEventListener('click', undo);
             document.getElementById('redo-btn').addEventListener('click', redo);
-            document.getElementById('save-btn').addEventListener('click', saveProject);
+            // Update Save button listener to toggle modal
+            document.getElementById('save-btn').addEventListener('click', toggleSaveModal);
             document.getElementById('clone-btn').addEventListener('click', cloneSelected);
             document.getElementById('export-btn').addEventListener('click', exportScreenshot);
             document.getElementById('grid-btn').addEventListener('click', toggleGrid);
             document.getElementById('theme-btn').addEventListener('click', toggleTheme);
             document.getElementById('select-all-btn').addEventListener('click', selectAll);
             document.getElementById('clear-btn').addEventListener('click', () => clearAll(true));
+
+            // Cheats
+            document.getElementById('cheat-noclip').addEventListener('click', () => {
+                gameState.cheats.noClip = !gameState.cheats.noClip;
+                const btn = document.getElementById('cheat-noclip');
+                if (gameState.cheats.noClip) {
+                    btn.classList.add('active');
+                    showToast('Ghost Mode Enabled (No Clip)');
+                } else {
+                    btn.classList.remove('active');
+                    showToast('Ghost Mode Disabled');
+                }
+            });
+
+            document.getElementById('cheat-random').addEventListener('click', () => {
+                const targets = gameState.selectedBrickIds.length > 0 ?
+                    gameState.selectedBrickIds :
+                    gameState.bricks.map(b => b.id);
+
+                if (targets.length === 0) {
+                    showToast('No bricks to randomize');
+                    return;
+                }
+
+                targets.forEach(id => {
+                    const brick = gameState.bricks.find(b => b.id === id);
+                    if (brick) {
+                        const randomColor = CONFIG.colors[Math.floor(Math.random() * CONFIG.colors.length)].hex;
+                        brick.color = randomColor;
+                        renderManager.updateBrickColor(brick);
+                    }
+                });
+                saveToHistory();
+                showToast(`Randomized ${targets.length} bricks!`);
+            });
         }
 
         function setupKeyboardShortcuts() {
